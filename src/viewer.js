@@ -10,6 +10,8 @@ import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { buildModel } from './model.js';
 import { DIMENSIONS, ROOMS, STATUS_LABEL, H } from './config.js';
+import { allFurnitureTextures } from './furniture.js';
+import { REF_VIEWS, WARM_LIGHTS } from './ref-views.js';
 
 const $ = (s) => document.querySelector(s);
 const stage = $('#stage');
@@ -37,6 +39,7 @@ scene.environmentIntensity = 0.55;
 const { root, groups } = buildModel();
 scene.add(root);
 
+{ const an = renderer.capabilities.getMaxAnisotropy(); for (const t of allFurnitureTextures()) { t.anisotropy = an; t.needsUpdate = true; } }
 const bbox = new THREE.Box3().setFromObject(root);
 const center = bbox.getCenter(new THREE.Vector3());
 const size = bbox.getSize(new THREE.Vector3());
@@ -63,7 +66,15 @@ scene.add(helpers);
   ground.userData.noPick = true;
   helpers.add(ground);
 }
-scene.add(new THREE.HemisphereLight('#ffffff', '#cfc7bb', 0.9));
+const hemi = new THREE.HemisphereLight('#ffffff', '#cfc7bb', 0.9);
+scene.add(hemi);
+// ცის (ნახევარსფეროს) და გარემოს განათება ჩრდილს არ აგდებს — სახურავის ჩვენებისას ის ოთახებში „გადის“ და
+// ინტერიერს ზედმეტად ანათებს (ღია ფერის ქსოვილები თეთრდება). სახურავით — ცის წილი მცირდება (ფანჯრებიდან შემოსული).
+function updateSky() {
+  const roof = groups.ceiling.visible;
+  hemi.intensity = roof ? 0.32 : 0.9;
+  scene.environmentIntensity = roof ? 0.3 : 0.55;
+}
 const sun = new THREE.DirectionalLight('#fff4e6', 2.2);
 sun.position.set(center.x - 10, 22, center.z + 14);
 sun.target.position.copy(center);
@@ -156,9 +167,13 @@ function useCamera(cam) {
   makeControls(cam, t);
   buildComposer();
 }
+const BASE_FOV = 35;
 function setView(name, animate = true) {
   viewName = name;
   focused = null;
+  refActive = null;
+  $('#ref-select').value = '';
+  if (persp.fov !== BASE_FOV) { persp.fov = BASE_FOV; persp.updateProjectionMatrix(); }
   if (name !== 'fit') setActiveView(name);
   if (name === 'top' || (name === 'fit' && camera === ortho)) {
     if (camera === persp) lastPersp = { pos: persp.position.clone(), target: controls.target.clone() };
@@ -329,9 +344,16 @@ function select(obj) {
     const [txt, cls] = STATUS_LABEL[inf.status['მდებარეობა']];
     rows.push(`<tr><th>მდებარეობა</th><td>გეგმაზე</td><td><span class="badge ${cls}">${txt}</span></td></tr>`);
   }
+  for (const key of ['ფორმა', 'მასალა']) {
+    if (!inf.status?.[key]) continue;
+    const [txt, cls] = STATUS_LABEL[inf.status[key]];
+    const val = key === 'ფორმა' ? (inf.shape || '—') : (inf.materials?.length ? `${inf.materials.length} მასალა` : '—');
+    rows.push(`<tr><th>${key}</th><td>${val}</td><td><span class="badge ${cls}">${txt}</span></td></tr>`);
+  }
+  const matList = inf.materials?.length ? `<p class="note">${inf.materials.map((m) => '• ' + m).join('<br>')}</p>` : '';
   const meta = [inf.code, inf.kind, inf.zone].filter(Boolean).join(' · ');
   const sheets = inf.sheets?.length ? `<p class="src">ფურცელი: ${inf.sheets.join(', ')}</p>` : '';
-  $('#info-body').innerHTML = `<div class="meta">${meta}</div><h2>${inf.name}</h2><table>${rows.join('')}</table>${inf.note ? `<p class="note">${inf.note}</p>` : ''}${sheets}`;
+  $('#info-body').innerHTML = `<div class="meta">${meta}</div><h2>${inf.name}</h2><table>${rows.join('')}</table>${inf.note ? `<p class="note">${inf.note}</p>` : ''}${matList}${sheets}`;
   card.hidden = false;
   needsRender = true;
 }
@@ -375,6 +397,7 @@ function setActiveView(name) { document.querySelectorAll('[data-view]').forEach(
 const layerTargets = { ceiling: [groups.ceiling], exterior: [groups.exterior], furniture: [groups.furniture], dims: [dims] };
 function setLayer(key, on) {
   for (const g of layerTargets[key]) g.visible = on;
+  if (key === 'ceiling') updateSky();
   document.querySelector(`[data-layer="${key}"]`).setAttribute('aria-pressed', String(on));
   if (key === 'dims') { $('#legend').hidden = !on; fitOrtho(); if (!userMoved && !tween) setView(viewName, true); }
   if (selected && !isShown(selected)) select(null);
@@ -429,6 +452,40 @@ function hideHint() { hint.classList.add('collapsed'); }
 hint.querySelector('button').addEventListener('click', () => hint.classList.toggle('collapsed'));
 for (const ev of ['gesturestart', 'gesturechange', 'gestureend']) document.addEventListener(ev, (e) => e.preventDefault(), { passive: false });
 
+// ------------------------------------------------------------------ რენდერებთან შედარება
+// კამერები რენდერების ხედებთან მიახლოებით (ref-views.js); თავისუფალი ნავიგაცია რჩება — ნებისმიერი
+// მოძრაობა ჩვეულებრივ მუშაობს, სხვა ხედის ღილაკი კი აბრუნებს სტანდარტულ ობიექტივს.
+let refActive = null;
+const refSel = $('#ref-select');
+refSel.innerHTML = '<option value="">— აირჩიეთ ხედი —</option>' + REF_VIEWS.map((v) => `<option value="${v.id}">${v.label}</option>`).join('');
+function setRefView(id) {
+  const v = REF_VIEWS.find((q) => q.id === id);
+  if (!v) return;
+  hideHint();
+  if (camera !== persp) { persp.position.set(controls.target.x, 30, controls.target.z + 0.01); useCamera(persp); }
+  setActiveView('');
+  refActive = v;
+  viewName = 'ref';
+  userMoved = true;
+  setLayer('ceiling', !v.id.startsWith('A08'));
+  persp.fov = v.fov;
+  persp.updateProjectionMatrix();
+  tweenTo({ pos: new THREE.Vector3(...v.pos), target: new THREE.Vector3(...v.target) }, true, 900);
+}
+refSel.addEventListener('change', () => setRefView(refSel.value));
+const warmRig = new THREE.Group();
+warmRig.name = 'warm reference lights (viewer only)';
+warmRig.visible = false;
+for (const p of WARM_LIGHTS) { const l = new THREE.PointLight('#ffd2a1', 0, 0, 2); l.power = 900; l.position.set(...p); warmRig.add(l); }
+scene.add(warmRig);
+function setWarm(on) {
+  warmRig.visible = on;
+  for (const l of warmRig.children) l.intensity = on ? l.power / (4 * Math.PI) : 0;
+  $('#warm').setAttribute('aria-pressed', String(on));
+  needsRender = true;
+}
+$('#warm').addEventListener('click', () => setWarm(!warmRig.visible));
+
 // ------------------------------------------------------------------ ზომის ცვლილება
 function resize() {
   const w = stage.clientWidth, h = stage.clientHeight;
@@ -452,6 +509,8 @@ setLayer('ceiling', false); // საწყისად ჭერი მოხ�
 setLayer('exterior', true);
 setLayer('furniture', true);
 setLayer('dims', false);
+setWarm(false);
+document.getElementById('loading')?.remove();
 
 // კონტაქტური ჩრდილები (AO) ითვლება მხოლოდ გაჩერებულ კამერაზე — ტრიალი და ზუმი რჩება რბილი
 let lastMove = -1e9, aoDirty = true;
@@ -475,6 +534,6 @@ requestAnimationFrame(loop);
 // შემოწმებისთვის (კონსოლიდან)
 window.__house = {
   THREE, scene, root, groups, renderer, houseCenter, get camera() { return camera; }, get controls() { return controls; },
-  setView, setLayer, select, focusOn, pick, zoomBy,
+  setView, setLayer, select, focusOn, pick, zoomBy, setRefView, setWarm, REF_VIEWS,
   capture() { controls.update(); aoPass.enabled = true; composer.render(); labelRenderer.render(scene, camera); return renderer.domElement.toDataURL('image/png'); },
 };

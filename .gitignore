@@ -3,3 +3,6 @@ node_modules/
 .env*
 # PDF ნახაზის ფრაგმენტები — მხოლოდ ლოკალურად
 verification/plan-vs-model_*.png
+
+# რენდერების ფრაგმენტები შედარების სურათებში — მხოლოდ ლოკალურად
+verification/compare/compare_*.jpg

@@ -69,6 +69,11 @@ button{font:inherit;color:inherit}
 #legend .sw.approx{border-top:2px dashed #d9480f}
 #toast{position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);background:rgba(31,36,41,.92);color:#fff;border-radius:10px;padding:9px 14px;font-size:13px;box-shadow:var(--shadow);z-index:5}
 [hidden]{display:none !important}
+.sel{grid-column:1/-1;display:flex;align-items:center;gap:7px;min-height:38px;padding:0 6px 0 9px;border:1px solid var(--line);background:var(--btn);border-radius:10px;font-size:12.5px}
+.sel svg{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.sel select{flex:1;min-width:0;border:0;background:transparent;font:inherit;color:inherit;padding:8px 0;cursor:pointer;outline:none}
+#loading{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#eceae6;color:var(--muted);font-size:14px;z-index:30}
+#loading span{background:var(--panel-solid);border:1px solid var(--line);border-radius:12px;padding:10px 16px;box-shadow:var(--shadow)}
 .dim{font-size:11px;font-weight:600;padding:1px 5px;border-radius:6px;white-space:nowrap;background:rgba(255,255,255,.95);border:1px solid #1f2933;color:#1f2933;font-variant-numeric:tabular-nums}
 .dim.approx{border:1px dashed #d9480f;color:#a33a08}
 .room{display:flex;flex-direction:column;align-items:center;font-size:12px;color:#1f2429;text-shadow:0 0 3px #fff,0 0 6px #fff}
@@ -90,6 +95,7 @@ button{font:inherit;color:inherit}
   .toolbar .btn[aria-pressed]::after{right:4px;top:6px;margin-top:0;width:10px;height:10px;border-radius:3px}
   .toolbar .btn .t{display:none}
   .toolbar .btn .ts{display:inline}
+  .toolbar .sel{min-width:190px;flex:none;min-height:56px}
   #info{left:8px;right:8px;width:auto;max-width:none;bottom:calc(84px + env(safe-area-inset-bottom));max-height:calc(100vh - 230px)}
   #hint{bottom:calc(84px + env(safe-area-inset-bottom));left:8px;max-width:calc(100vw - 16px);font-size:11px}
   #legend{top:auto;bottom:calc(84px + env(safe-area-inset-bottom));font-size:11px}
@@ -101,6 +107,7 @@ body.pseudo-fs .brand,body.pseudo-fs #hint{display:none}
 </style>
 </head>
 <body>
+<div id="loading"><span>მოდელი და მასალები მზადდება…</span></div>
 <div id="stage"><canvas id="c" aria-label="სახლის 3D მოდელი"></canvas><div id="labels"></div></div>
 
 <header class="brand panel">
@@ -130,6 +137,11 @@ body.pseudo-fs .brand,body.pseudo-fs #hint{display:none}
     <button class="btn wide" data-layer="exterior" aria-pressed="true" title="გარე კედლების ჩვენება ან დამალვა (შიდა ტიხრები რჩება)"><svg viewBox="0 0 24 24"><path d="M3 20V6h18v14"/><path d="M3 10h18"/></svg><span class="t">გარე კედლების ჩვენება/დამალვა</span><span class="ts">გარე კედ.</span></button>
     <button class="btn wide" data-layer="furniture" aria-pressed="true" title="ავეჯის ჩვენება ან დამალვა"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="9" rx="1.5"/><path d="M6 14v5M18 14v5M4 9h16"/></svg><span class="t">ავეჯის ჩვენება/დამალვა</span><span class="ts">ავეჯი</span></button>
     <button class="btn wide" data-layer="dims" aria-pressed="false" title="ზომების ჩვენება ან დამალვა"><svg viewBox="0 0 24 24"><path d="M3 17h18M3 14v6M21 14v6M7 17v-2M11 17v-3M15 17v-2"/><path d="M7 4h10"/></svg><span class="t">ზომების ჩვენება/დამალვა</span><span class="ts">ზომები</span></button>
+  </div>
+  <div class="group">
+    <h3>რენდერთან შედარება</h3>
+    <label class="sel wide" title="კამერა რენდერის ხედთან მიახლოებით (PDF „რენდერები“)"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="12" cy="12" r="3.2"/><path d="M8 5l1.5-2h5L16 5"/></svg><select id="ref-select" aria-label="რენდერის ხედი"></select></label>
+    <button class="btn wide" id="warm" aria-pressed="false" title="თბილი ჭერის განათება ოთახებში (რენდერებთან მიახლოებული პირობები; მხოლოდ სანახავში)"><svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4"/><path d="M12 6a5 5 0 0 0-3 9c.6.5 1 1.2 1 2h4c0-.8.4-1.5 1-2a5 5 0 0 0-3-9z"/></svg><span class="t">თბილი განათება</span><span class="ts">თბილი შუქი</span></button>
   </div>
   <div class="group">
     <h3>ფაილი</h3>
