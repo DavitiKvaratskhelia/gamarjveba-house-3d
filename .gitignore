@@ -1,0 +1,5 @@
+node_modules/
+.vercel
+.env*
+# PDF ნახაზის ფრაგმენტები — მხოლოდ ლოკალურად
+verification/plan-vs-model_*.png

@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="ka">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>გამარჯვების სახლი · 3D</title>
+<meta name="description" content="გამარჯვების სახლის ინტერაქტიული 3D მაკეტი PDF ნახაზების მიხედვით (1 ერთეული = 1 მ).">
+<style>
+:root{
+  --panel:rgba(255,255,255,.82); --panel-solid:rgba(255,255,255,.96); --line:rgba(30,35,40,.1); --text:#1f2429; --muted:#69717a;
+  --btn:rgba(255,255,255,.7); --btn-hover:#fff;
+  --accent:#c2652a; --accent-soft:rgba(194,101,42,.12); --ok:#1f7a4d; --ok-bg:rgba(31,122,77,.11); --meas:#a8510f; --meas-bg:rgba(217,72,15,.1); --asm:#5b636c; --asm-bg:rgba(30,35,40,.07);
+  --shadow:0 8px 26px rgba(40,35,30,.12), 0 1px 2px rgba(40,35,30,.1); --r:14px;
+  --font:"Noto Sans Georgian","BPG Arial","Sylfaen","Segoe UI",system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#eceae6;color:var(--text);font-family:var(--font);-webkit-font-smoothing:antialiased;overflow:hidden;overscroll-behavior:none;touch-action:none;-webkit-text-size-adjust:100%;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit}
+#stage{position:fixed;inset:0}
+#c{display:block;width:100%;height:100%;outline:none;cursor:grab;touch-action:none}
+#c:active{cursor:grabbing}
+#labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.panel{background:var(--panel);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+.brand{position:fixed;top:max(14px,env(safe-area-inset-top));left:max(14px,env(safe-area-inset-left));padding:10px 14px;max-width:min(420px,calc(100vw - 28px))}
+.brand h1{margin:0;font-size:16px;line-height:1.25;font-weight:700;display:flex;align-items:center;gap:8px}
+.brand h1 i{width:10px;height:10px;border-radius:3px;background:var(--accent);flex:none}
+.brand p{margin:3px 0 0;font-size:12px;color:var(--muted)}
+.toolbar{position:fixed;top:max(14px,env(safe-area-inset-top));right:max(14px,env(safe-area-inset-right));width:228px;padding:10px;display:flex;flex-direction:column;gap:10px;max-height:calc(100vh - 28px);overflow:auto;touch-action:pan-x pan-y}
+.group{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.group h3{grid-column:1/-1;margin:2px 2px 0;font-size:11px;font-weight:600;color:var(--muted)}
+.btn{display:flex;align-items:center;gap:7px;min-height:38px;padding:7px 9px;border:1px solid var(--line);background:var(--btn);border-radius:10px;font-size:12.5px;line-height:1.2;cursor:pointer;text-align:left;transition:background .15s,border-color .15s}
+.btn svg{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.btn:hover{background:var(--btn-hover);border-color:rgba(30,35,40,.2)}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.btn.active{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);background:var(--accent-soft)}
+.btn[aria-pressed]{position:relative;padding-right:30px}
+.btn[aria-pressed]::after{content:"";position:absolute;right:9px;top:50%;width:14px;height:14px;margin-top:-7px;border-radius:4px;border:1.6px solid rgba(30,35,40,.3)}
+.btn[aria-pressed="true"]::after{background:var(--accent);border-color:var(--accent);box-shadow:inset 0 0 0 2.5px #fff}
+.btn.wide{grid-column:1/-1}
+.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn.primary:hover{background:#d0733a}
+.btn:disabled{opacity:.55;cursor:progress}
+.btn .ts{display:none}
+#info{position:fixed;left:max(14px,env(safe-area-inset-left));bottom:max(64px,calc(env(safe-area-inset-bottom) + 64px));width:350px;max-width:calc(100vw - 28px);max-height:calc(100vh - 150px);overflow:auto;background:var(--panel-solid);padding:12px 14px}
+#info .meta{font-size:11.5px;color:var(--muted);padding-right:28px}
+#info h2{margin:3px 0 8px;font-size:15px;line-height:1.3;padding-right:24px}
+#info table{width:100%;border-collapse:collapse;font-size:12.5px}
+#info th{text-align:left;font-weight:500;color:var(--muted);padding:4px 6px 4px 0;white-space:nowrap}
+#info td{padding:4px 0;font-variant-numeric:tabular-nums}
+#info td:last-child{text-align:right}
+#info .note,#info .src{margin:8px 0 0;font-size:12px;color:var(--muted);line-height:1.4}
+#info .src{font-size:11px}
+.badge{display:inline-block;font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:99px;white-space:nowrap}
+.badge.ok{background:var(--ok-bg);color:var(--ok)}
+.badge.meas{background:var(--meas-bg);color:var(--meas)}
+.badge.asm{background:var(--asm-bg);color:var(--asm)}
+.icon-btn{position:absolute;top:8px;right:8px;width:30px;height:30px;border:0;background:transparent;border-radius:8px;cursor:pointer;color:var(--muted);font-size:20px;line-height:30px}
+.icon-btn:hover{background:var(--asm-bg)}
+#info .actions{margin-top:10px;display:flex;gap:6px}
+#info .actions .btn{min-height:34px}
+#hint{position:fixed;left:max(14px,env(safe-area-inset-left));bottom:max(14px,env(safe-area-inset-bottom));display:flex;align-items:center;gap:8px;padding:6px 6px 6px 12px;font-size:12px;color:var(--muted);max-width:calc(100vw - 290px)}
+#hint b{color:var(--text);font-weight:600}
+#hint button{flex:none;width:28px;height:28px;border-radius:8px;border:1px solid var(--line);background:var(--btn);cursor:pointer;font-weight:700;color:var(--muted)}
+#hint.collapsed{padding:6px}
+#hint.collapsed .txt{display:none}
+#legend{position:fixed;left:50%;transform:translateX(-50%);top:max(14px,env(safe-area-inset-top));padding:7px 12px;font-size:12px;display:flex;gap:14px;align-items:center;white-space:nowrap}
+#legend span{display:inline-flex;align-items:center;gap:6px}
+#legend .sw{display:inline-block;width:22px;height:0;border-top:2px solid #1f2933}
+#legend .sw.approx{border-top:2px dashed #d9480f}
+#toast{position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);background:rgba(31,36,41,.92);color:#fff;border-radius:10px;padding:9px 14px;font-size:13px;box-shadow:var(--shadow);z-index:5}
+[hidden]{display:none !important}
+.dim{font-size:11px;font-weight:600;padding:1px 5px;border-radius:6px;white-space:nowrap;background:rgba(255,255,255,.95);border:1px solid #1f2933;color:#1f2933;font-variant-numeric:tabular-nums}
+.dim.approx{border:1px dashed #d9480f;color:#a33a08}
+.room{display:flex;flex-direction:column;align-items:center;font-size:12px;color:#1f2429;text-shadow:0 0 3px #fff,0 0 6px #fff}
+.room b{font-size:12.5px;white-space:nowrap}
+.room span{font-size:11px;color:#4b535b}
+.facade{font-size:12px;font-weight:700;color:#fff;background:var(--accent);padding:2px 8px;border-radius:6px;white-space:nowrap}
+@media (min-width:761px){#hint{max-width:max(210px,calc(100vw - 660px))}}
+@media (max-width:760px){
+  .brand{padding:8px 11px}
+  .brand h1{font-size:14px}
+  .brand p{font-size:11px}
+  .toolbar{top:auto;left:0;right:0;bottom:0;width:auto;max-height:none;border-radius:16px 16px 0 0;border-left:0;border-right:0;border-bottom:0;flex-direction:row;overflow-x:auto;overflow-y:hidden;gap:12px;padding:8px max(10px,env(safe-area-inset-left)) max(8px,env(safe-area-inset-bottom));scrollbar-width:none}
+  .toolbar::-webkit-scrollbar{display:none}
+  .group{display:flex;gap:6px;flex:none}
+  .group h3{display:none}
+  .group + .group{border-left:1px solid var(--line);padding-left:12px}
+  .toolbar .btn{flex-direction:column;justify-content:center;gap:3px;min-width:64px;min-height:56px;padding:6px 7px;font-size:10.5px;text-align:center}
+  .toolbar .btn[aria-pressed]{padding-right:7px}
+  .toolbar .btn[aria-pressed]::after{right:4px;top:6px;margin-top:0;width:10px;height:10px;border-radius:3px}
+  .toolbar .btn .t{display:none}
+  .toolbar .btn .ts{display:inline}
+  #info{left:8px;right:8px;width:auto;max-width:none;bottom:calc(84px + env(safe-area-inset-bottom));max-height:calc(100vh - 230px)}
+  #hint{bottom:calc(84px + env(safe-area-inset-bottom));left:8px;max-width:calc(100vw - 16px);font-size:11px}
+  #legend{top:auto;bottom:calc(84px + env(safe-area-inset-bottom));font-size:11px}
+  #info:not([hidden]) ~ #hint{display:none}
+  #toast{bottom:calc(90px + env(safe-area-inset-bottom))}
+}
+@media (max-width:760px) and (max-height:500px){.brand{display:none}}
+body.pseudo-fs .brand,body.pseudo-fs #hint{display:none}
+</style>
+</head>
+<body>
+<div id="stage"><canvas id="c" aria-label="სახლის 3D მოდელი"></canvas><div id="labels"></div></div>
+
+<header class="brand panel">
+  <h1><i></i>გამარჯვების სახლი</h1>
+  <p>3D მაკეტი · ნახაზები A.8–A.16 · 16.3 × 7.5 მ + ტერასა · 1 ერთეული = 1 მ</p>
+</header>
+
+<nav class="toolbar panel" aria-label="მართვა">
+  <div class="group">
+    <h3>ხედები</h3>
+    <button class="btn" data-view="home" title="საწყისი ხედი"><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg><span class="t">საწყისი ხედი</span><span class="ts">საწყისი</span></button>
+    <button class="btn" data-view="fit" title="მთლიანი სახლი კადრში"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span class="t">მთლიანი სახლი</span><span class="ts">მთლიანი</span></button>
+    <button class="btn" data-view="top" title="ორთოგრაფიული ზედხედი (გეგმის ორიენტაციით)"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="1"/><path d="M4 12h9v8M13 4v4"/></svg><span class="t">ზედხედი</span><span class="ts">ზედხედი</span></button>
+    <button class="btn" data-view="3d" title="პერსპექტიული 3D ხედი"><svg viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg><span class="t">3D ხედი</span><span class="ts">3D</span></button>
+    <button class="btn" data-view="front" title="წინა ხედი — ტერასის ფასადი"><svg viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="13" rx="1"/><path d="M4 10h16M10 19v-6h4v6"/></svg><span class="t">წინა ხედი</span><span class="ts">წინა</span></button>
+    <button class="btn" data-view="side" title="გვერდხედი — დასავლეთიდან"><svg viewBox="0 0 24 24"><path d="M4 19V8l8-4v15M12 19h8V9l-8-5"/></svg><span class="t">გვერდხედი</span><span class="ts">გვერდი</span></button>
+  </div>
+  <div class="group">
+    <h3>ზუმი და ეკრანი</h3>
+    <button class="btn" id="zoom-in" title="მიახლოება"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.3-4.3M11 8v6M8 11h6"/></svg><span class="t">ზუმი +</span><span class="ts">ზუმი +</span></button>
+    <button class="btn" id="zoom-out" title="დაშორება"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.3-4.3M8 11h6"/></svg><span class="t">ზუმი −</span><span class="ts">ზუმი −</span></button>
+    <button class="btn wide" id="fullscreen" title="სრული ეკრანი"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg><span class="t">სრული ეკრანი</span><span class="ts">სრ. ეკრანი</span></button>
+  </div>
+  <div class="group">
+    <h3>ფენები</h3>
+    <button class="btn wide" data-layer="ceiling" aria-pressed="false" title="ჭერის / სახურავის ჩვენება ან დამალვა"><svg viewBox="0 0 24 24"><path d="M3 7h18M5 7v3M19 7v3"/><path d="M7 14h10"/></svg><span class="t">ჭერის ჩვენება/დამალვა</span><span class="ts">ჭერი</span></button>
+    <button class="btn wide" data-layer="exterior" aria-pressed="true" title="გარე კედლების ჩვენება ან დამალვა (შიდა ტიხრები რჩება)"><svg viewBox="0 0 24 24"><path d="M3 20V6h18v14"/><path d="M3 10h18"/></svg><span class="t">გარე კედლების ჩვენება/დამალვა</span><span class="ts">გარე კედ.</span></button>
+    <button class="btn wide" data-layer="furniture" aria-pressed="true" title="ავეჯის ჩვენება ან დამალვა"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="9" rx="1.5"/><path d="M6 14v5M18 14v5M4 9h16"/></svg><span class="t">ავეჯის ჩვენება/დამალვა</span><span class="ts">ავეჯი</span></button>
+    <button class="btn wide" data-layer="dims" aria-pressed="false" title="ზომების ჩვენება ან დამალვა"><svg viewBox="0 0 24 24"><path d="M3 17h18M3 14v6M21 14v6M7 17v-2M11 17v-3M15 17v-2"/><path d="M7 4h10"/></svg><span class="t">ზომების ჩვენება/დამალვა</span><span class="ts">ზომები</span></button>
+  </div>
+  <div class="group">
+    <h3>ფაილი</h3>
+    <button class="btn wide primary" id="glb" title="სრული მოდელის ჩამოტვირთვა GLB ფორმატში"><svg viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg><span class="t">GLB-ის ჩამოტვირთვა</span><span class="ts">GLB</span></button>
+  </div>
+</nav>
+
+<section id="info" class="panel" hidden aria-live="polite">
+  <button class="icon-btn" id="info-close" aria-label="დახურვა">×</button>
+  <div id="info-body"></div>
+  <div class="actions"><button class="btn" id="info-focus"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg>ობიექტზე ფოკუსი</button></div>
+</section>
+<div id="hint" class="panel"><span class="txt"></span><button type="button" aria-label="მართვის მინიშნება" title="მართვის მინიშნება">?</button></div>
+<div id="legend" class="panel" hidden><span><i class="sw"></i>PDF-ში მითითებული</span><span><i class="sw approx"></i>≈ ნახაზიდან / ვარაუდი</span></div>
+<div id="toast" hidden role="status"></div>
+<!--APP-->
+</body>
+</html>

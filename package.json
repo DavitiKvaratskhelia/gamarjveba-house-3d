@@ -1,0 +1,17 @@
+{
+  "name": "gamarjveba-house-3d",
+  "version": "1.0.0",
+  "description": "გამარჯვების სახლი — 3D მოდელი და სანახავი (PDF ნახაზების მიხედვით)",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node tools/build.mjs && node tools/export-glb.mjs",
+    "build:html": "node tools/build.mjs",
+    "build:glb": "node tools/export-glb.mjs",
+    "serve": "node tools/serve.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "0.24.0",
+    "three": "0.170.0"
+  }
+}
