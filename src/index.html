@@ -12,11 +12,13 @@
   --accent:#c2652a; --accent-soft:rgba(194,101,42,.12); --ok:#1f7a4d; --ok-bg:rgba(31,122,77,.11); --meas:#a8510f; --meas-bg:rgba(217,72,15,.1); --asm:#5b636c; --asm-bg:rgba(30,35,40,.07);
   --shadow:0 8px 26px rgba(40,35,30,.12), 0 1px 2px rgba(40,35,30,.1); --r:14px;
   --font:"Noto Sans Georgian","BPG Arial","Sylfaen","Segoe UI",system-ui,-apple-system,sans-serif;
+  --nav-h:60px;
 }
 *{box-sizing:border-box}
-html,body{margin:0;height:100%;background:#eceae6;color:var(--text);font-family:var(--font);-webkit-font-smoothing:antialiased;overflow:hidden;overscroll-behavior:none;touch-action:none;-webkit-text-size-adjust:100%;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+/* გვერდი არ სქროლდება; შეხების შეზღუდვა (touch-action) — მხოლოდ 3D არეში და ჯოისტიკზე, პანელები სქროლდება */
+html,body{margin:0;height:100%;background:#eceae6;color:var(--text);font-family:var(--font);-webkit-font-smoothing:antialiased;overflow:hidden;overscroll-behavior:none;-webkit-text-size-adjust:100%;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 button{font:inherit;color:inherit}
-#stage{position:fixed;inset:0}
+#stage{position:fixed;inset:0;touch-action:none}
 #c{display:block;width:100%;height:100%;outline:none;cursor:grab;touch-action:none}
 #c:active{cursor:grabbing}
 #labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
@@ -25,7 +27,7 @@ button{font:inherit;color:inherit}
 .brand h1{margin:0;font-size:16px;line-height:1.25;font-weight:700;display:flex;align-items:center;gap:8px}
 .brand h1 i{width:10px;height:10px;border-radius:3px;background:var(--accent);flex:none}
 .brand p{margin:3px 0 0;font-size:12px;color:var(--muted)}
-.toolbar{position:fixed;top:max(14px,env(safe-area-inset-top));right:max(14px,env(safe-area-inset-right));width:228px;padding:10px;display:flex;flex-direction:column;gap:10px;max-height:calc(100vh - 28px);overflow:auto;touch-action:pan-x pan-y}
+.toolbar{position:fixed;top:max(14px,env(safe-area-inset-top));right:max(14px,env(safe-area-inset-right));width:228px;padding:10px;display:flex;flex-direction:column;gap:10px;max-height:calc(100vh - 28px);overflow:auto;touch-action:pan-y;z-index:4}
 .group{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .group h3{grid-column:1/-1;margin:2px 2px 0;font-size:11px;font-weight:600;color:var(--muted)}
 .btn{display:flex;align-items:center;gap:7px;min-height:38px;padding:7px 9px;border:1px solid var(--line);background:var(--btn);border-radius:10px;font-size:12.5px;line-height:1.2;cursor:pointer;text-align:left;transition:background .15s,border-color .15s}
@@ -41,7 +43,7 @@ button{font:inherit;color:inherit}
 .btn.primary:hover{background:#d0733a}
 .btn:disabled{opacity:.55;cursor:progress}
 .btn .ts{display:none}
-#info{position:fixed;left:max(14px,env(safe-area-inset-left));bottom:max(64px,calc(env(safe-area-inset-bottom) + 64px));width:350px;max-width:calc(100vw - 28px);max-height:calc(100vh - 150px);overflow:auto;background:var(--panel-solid);padding:12px 14px}
+#info{position:fixed;left:max(14px,env(safe-area-inset-left));bottom:calc(max(14px,env(safe-area-inset-bottom)) + var(--nav-h) + 10px);width:350px;max-width:calc(100vw - 28px);max-height:calc(100vh - 170px);overflow:auto;background:var(--panel-solid);padding:12px 14px;z-index:5;touch-action:pan-y}
 #info .meta{font-size:11.5px;color:var(--muted);padding-right:28px}
 #info h2{margin:3px 0 8px;font-size:15px;line-height:1.3;padding-right:24px}
 #info table{width:100%;border-collapse:collapse;font-size:12.5px}
@@ -54,20 +56,15 @@ button{font:inherit;color:inherit}
 .badge.ok{background:var(--ok-bg);color:var(--ok)}
 .badge.meas{background:var(--meas-bg);color:var(--meas)}
 .badge.asm{background:var(--asm-bg);color:var(--asm)}
-.icon-btn{position:absolute;top:8px;right:8px;width:30px;height:30px;border:0;background:transparent;border-radius:8px;cursor:pointer;color:var(--muted);font-size:20px;line-height:30px}
+.icon-btn{position:absolute;top:6px;right:6px;width:44px;height:44px;border:0;background:transparent;border-radius:10px;cursor:pointer;color:var(--muted);font-size:22px;line-height:44px}
 .icon-btn:hover{background:var(--asm-bg)}
 #info .actions{margin-top:10px;display:flex;gap:6px}
-#info .actions .btn{min-height:34px}
-#hint{position:fixed;left:max(14px,env(safe-area-inset-left));bottom:max(14px,env(safe-area-inset-bottom));display:flex;align-items:center;gap:8px;padding:6px 6px 6px 12px;font-size:12px;color:var(--muted);max-width:calc(100vw - 290px)}
-#hint b{color:var(--text);font-weight:600}
-#hint button{flex:none;width:28px;height:28px;border-radius:8px;border:1px solid var(--line);background:var(--btn);cursor:pointer;font-weight:700;color:var(--muted)}
-#hint.collapsed{padding:6px}
-#hint.collapsed .txt{display:none}
+#info .actions .btn{min-height:40px}
 #legend{position:fixed;left:50%;transform:translateX(-50%);top:max(14px,env(safe-area-inset-top));padding:7px 12px;font-size:12px;display:flex;gap:14px;align-items:center;white-space:nowrap}
 #legend span{display:inline-flex;align-items:center;gap:6px}
 #legend .sw{display:inline-block;width:22px;height:0;border-top:2px solid #1f2933}
 #legend .sw.approx{border-top:2px dashed #d9480f}
-#toast{position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);background:rgba(31,36,41,.92);color:#fff;border-radius:10px;padding:9px 14px;font-size:13px;box-shadow:var(--shadow);z-index:5}
+#toast{position:fixed;left:50%;bottom:calc(max(14px,env(safe-area-inset-bottom)) + var(--nav-h) + 14px);transform:translateX(-50%);background:rgba(31,36,41,.92);color:#fff;border-radius:10px;padding:9px 14px;font-size:13px;box-shadow:var(--shadow);z-index:8;max-width:calc(100vw - 24px)}
 [hidden]{display:none !important}
 .sel{grid-column:1/-1;display:flex;align-items:center;gap:7px;min-height:38px;padding:0 6px 0 9px;border:1px solid var(--line);background:var(--btn);border-radius:10px;font-size:12.5px}
 .sel svg{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
@@ -80,81 +77,152 @@ button{font:inherit;color:inherit}
 .room b{font-size:12.5px;white-space:nowrap}
 .room span{font-size:11px;color:#4b535b}
 .facade{font-size:12px;font-weight:700;color:#fff;background:var(--accent);padding:2px 8px;border-radius:6px;white-space:nowrap}
-@media (min-width:761px){#hint{max-width:max(210px,calc(100vw - 660px))}}
-@media (max-width:760px){
+
+/* ---- ნავიგაციის ზოლი (Desktop: კომპაქტური, ცენტრში ქვემოთ) */
+#navbar{position:fixed;left:50%;transform:translateX(-50%);bottom:max(14px,env(safe-area-inset-bottom));display:flex;align-items:center;gap:4px;padding:5px;z-index:6;touch-action:manipulation}
+#navbar svg{width:20px;height:20px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.seg{display:flex;gap:2px;background:var(--asm-bg);border-radius:11px;padding:3px}
+.seg button,.nb{position:relative;display:flex;align-items:center;justify-content:center;gap:6px;min-width:44px;min-height:44px;padding:0 12px;border:0;border-radius:9px;background:transparent;cursor:pointer;font-size:12.5px;color:var(--text)}
+.nb{padding:0}
+.nb span{display:none}
+.seg button.active{background:#fff;color:var(--accent);box-shadow:0 1px 3px rgba(40,35,30,.18),inset 0 0 0 1.5px var(--accent);font-weight:600}
+.seg button:hover:not(.active),.nb:hover{background:rgba(255,255,255,.85)}
+.seg button:focus-visible,.nb:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.nb[aria-disabled="true"]{opacity:.42}
+.nb[aria-pressed="true"],.nb[aria-expanded="true"]{color:var(--accent);background:var(--accent-soft)}
+.sep{width:1px;height:28px;background:var(--line);margin:0 3px}
+[data-tip]:hover::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 9px);left:50%;transform:translateX(-50%);white-space:nowrap;background:rgba(31,36,41,.92);color:#fff;font-size:12px;font-weight:500;padding:5px 9px;border-radius:7px;pointer-events:none}
+.mobile-only{display:none !important}
+
+/* ---- დახმარება */
+#help{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(max(14px,env(safe-area-inset-bottom)) + var(--nav-h) + 10px);width:min(580px,calc(100vw - 24px));max-height:calc(100vh - 160px);overflow:auto;background:var(--panel-solid);padding:12px 16px 14px;z-index:7;touch-action:pan-y;-webkit-user-select:text;user-select:text}
+#help h2{margin:2px 0 6px;font-size:15px}
+#help section{border-top:1px solid var(--line);padding:8px 0 4px}
+#help section.cur h3{color:var(--accent)}
+#help h3{margin:0 0 6px;font-size:13px;display:flex;align-items:center;gap:8px}
+#help dl{display:grid;grid-template-columns:minmax(170px,auto) 1fr;gap:3px 12px;margin:0;font-size:12.5px}
+#help dt{font-weight:600}
+#help dd{margin:0;color:var(--muted)}
+
+/* ---- Walk: მინიშნება, ჯვარი, ჯოისტიკი */
+#walkhud{position:fixed;left:50%;transform:translateX(-50%);top:max(14px,env(safe-area-inset-top));display:flex;align-items:center;gap:10px;padding:5px 5px 5px 14px;font-size:12.5px;color:var(--muted);max-width:calc(100vw - 24px);transition:opacity .4s;z-index:3}
+#walkhud b{color:var(--text)}
+#walkhud.dim{opacity:.6}
+#walkhud .btn{min-height:40px;white-space:nowrap}
+body[data-mode="walk"] #legend{top:calc(max(14px,env(safe-area-inset-top)) + 58px)}
+#cross{display:none;position:fixed;left:50%;top:50%;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;border:2px solid rgba(255,255,255,.95);box-shadow:0 0 0 1px rgba(0,0,0,.45);pointer-events:none;z-index:3}
+body.locked #cross{display:block}
+#joy{display:none;position:fixed;left:max(18px,env(safe-area-inset-left));bottom:calc(max(10px,env(safe-area-inset-bottom)) + var(--nav-h) + 16px);width:128px;height:128px;border-radius:50%;background:rgba(255,255,255,.42);border:1.5px solid rgba(30,35,40,.18);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);touch-action:none;z-index:4}
+#joy .knob{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;background:var(--panel-solid);border:1.5px solid rgba(30,35,40,.2);box-shadow:var(--shadow);transition:transform .12s}
+#joy.active .knob{transition:none;background:#fff;border-color:var(--accent)}
+body[data-mode="walk"].touch #joy{display:block}
+body[data-mode="walk"] #c{cursor:crosshair}
+body.locked #c{cursor:none}
+
+/* ---- ტელეფონი / ვიწრო ეკრანი: მთავარი ღილაკები ქვედა ზოლში, დანარჩენი — გასაშლელ პანელში */
+@media (max-width:760px), (pointer:coarse) and (max-height:500px){
+  :root{--nav-h:64px}
   .brand{padding:8px 11px}
   .brand h1{font-size:14px}
   .brand p{font-size:11px}
-  .toolbar{top:auto;left:0;right:0;bottom:0;width:auto;max-height:none;border-radius:16px 16px 0 0;border-left:0;border-right:0;border-bottom:0;flex-direction:row;overflow-x:auto;overflow-y:hidden;gap:12px;padding:8px max(10px,env(safe-area-inset-left)) max(8px,env(safe-area-inset-bottom));scrollbar-width:none}
-  .toolbar::-webkit-scrollbar{display:none}
-  .group{display:flex;gap:6px;flex:none}
-  .group h3{display:none}
-  .group + .group{border-left:1px solid var(--line);padding-left:12px}
-  .toolbar .btn{flex-direction:column;justify-content:center;gap:3px;min-width:64px;min-height:56px;padding:6px 7px;font-size:10.5px;text-align:center}
-  .toolbar .btn[aria-pressed]{padding-right:7px}
-  .toolbar .btn[aria-pressed]::after{right:4px;top:6px;margin-top:0;width:10px;height:10px;border-radius:3px}
-  .toolbar .btn .t{display:none}
-  .toolbar .btn .ts{display:inline}
-  .toolbar .sel{min-width:190px;flex:none;min-height:56px}
-  #info{left:8px;right:8px;width:auto;max-width:none;bottom:calc(84px + env(safe-area-inset-bottom));max-height:calc(100vh - 230px)}
-  #hint{bottom:calc(84px + env(safe-area-inset-bottom));left:8px;max-width:calc(100vw - 16px);font-size:11px}
-  #legend{top:auto;bottom:calc(84px + env(safe-area-inset-bottom));font-size:11px}
-  #info:not([hidden]) ~ #hint{display:none}
-  #toast{bottom:calc(90px + env(safe-area-inset-bottom))}
+  .mobile-only{display:flex !important}
+  .desktop-only{display:none !important}
+  #navbar{left:0;right:0;transform:none;bottom:0;border-radius:16px 16px 0 0;border-left:0;border-right:0;border-bottom:0;justify-content:space-between;gap:2px;padding:6px max(8px,env(safe-area-inset-right)) max(6px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left))}
+  .seg button{flex-direction:column;gap:1px;padding:3px 9px;font-size:10.5px;min-height:50px}
+  .nb{flex-direction:column;gap:1px;min-width:46px;min-height:50px;font-size:10px;padding:2px 3px}
+  .nb span{display:block}
+  .sep{display:none}
+  [data-tip]:hover::after{display:none}
+  .toolbar{display:none;top:auto;left:8px;right:8px;width:auto;bottom:calc(max(6px,env(safe-area-inset-bottom)) + var(--nav-h) + 6px);max-height:min(62vh,calc(100vh - 160px));overflow-y:auto;overflow-x:hidden;z-index:6;background:var(--panel-solid)}
+  body.sheet-open .toolbar{display:flex}
+  .toolbar .btn{min-height:44px}
+  .toolbar .sel{min-height:44px}
+  #info{left:8px;right:8px;width:auto;max-width:none;bottom:calc(max(6px,env(safe-area-inset-bottom)) + var(--nav-h) + 8px);max-height:calc(100vh - 250px)}
+  body[data-mode="walk"] #info{top:calc(max(8px,env(safe-area-inset-top)) + 54px);bottom:auto;max-height:40vh}
+  #legend{top:auto;bottom:calc(max(6px,env(safe-area-inset-bottom)) + var(--nav-h) + 8px);font-size:11px}
+  #help{bottom:calc(max(6px,env(safe-area-inset-bottom)) + var(--nav-h) + 8px);max-height:calc(100vh - 170px)}
+  #help dl{grid-template-columns:1fr;gap:0}
+  #help dd{margin-bottom:5px}
+  #walkhud{top:max(8px,env(safe-area-inset-top));font-size:11.5px;padding:7px 12px}
 }
-@media (max-width:760px) and (max-height:500px){.brand{display:none}}
-body.pseudo-fs .brand,body.pseudo-fs #hint{display:none}
+/* ჰორიზონტალური ტელეფონი */
+@media (max-height:500px){
+  .brand{display:none}
+  #joy{width:112px;height:112px;bottom:calc(max(6px,env(safe-area-inset-bottom)) + var(--nav-h) + 8px)}
+  #info{max-height:calc(100vh - 120px)}
+  body[data-mode="walk"] #info{top:8px;bottom:auto;left:auto;right:max(8px,env(safe-area-inset-right));width:min(340px,46vw);max-height:calc(100vh - var(--nav-h) - 24px)}
+  .toolbar{max-height:calc(100vh - var(--nav-h) - 24px)}
+}
+body.pseudo-fs .brand,body[data-mode="walk"] .brand{display:none}
+@media (prefers-reduced-motion:reduce){*{transition:none !important}}
 </style>
 </head>
-<body>
+<body data-mode="orbit">
 <div id="loading"><span>მოდელი და მასალები მზადდება…</span></div>
-<div id="stage"><canvas id="c" aria-label="სახლის 3D მოდელი"></canvas><div id="labels"></div></div>
+<div id="stage"><canvas id="c" aria-label="სახლის 3D მოდელი" tabindex="0"></canvas><div id="labels"></div></div>
 
 <header class="brand panel">
   <h1><i></i>გამარჯვების სახლი</h1>
   <p>3D მაკეტი · ნახაზები A.8–A.16 · 16.3 × 7.5 მ + ტერასა · 1 ერთეული = 1 მ</p>
 </header>
 
-<nav class="toolbar panel" aria-label="მართვა">
+<nav class="toolbar panel" id="sidepanel" aria-label="ფენები და პარამეტრები">
   <div class="group">
-    <h3>ხედები</h3>
-    <button class="btn" data-view="home" title="საწყისი ხედი"><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg><span class="t">საწყისი ხედი</span><span class="ts">საწყისი</span></button>
-    <button class="btn" data-view="fit" title="მთლიანი სახლი კადრში"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span class="t">მთლიანი სახლი</span><span class="ts">მთლიანი</span></button>
-    <button class="btn" data-view="top" title="ორთოგრაფიული ზედხედი (გეგმის ორიენტაციით)"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="1"/><path d="M4 12h9v8M13 4v4"/></svg><span class="t">ზედხედი</span><span class="ts">ზედხედი</span></button>
-    <button class="btn" data-view="3d" title="პერსპექტიული 3D ხედი"><svg viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg><span class="t">3D ხედი</span><span class="ts">3D</span></button>
+    <h3>ხედები (Orbit)</h3>
     <button class="btn" data-view="front" title="წინა ხედი — ტერასის ფასადი"><svg viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="13" rx="1"/><path d="M4 10h16M10 19v-6h4v6"/></svg><span class="t">წინა ხედი</span><span class="ts">წინა</span></button>
     <button class="btn" data-view="side" title="გვერდხედი — დასავლეთიდან"><svg viewBox="0 0 24 24"><path d="M4 19V8l8-4v15M12 19h8V9l-8-5"/></svg><span class="t">გვერდხედი</span><span class="ts">გვერდი</span></button>
-  </div>
-  <div class="group">
-    <h3>ზუმი და ეკრანი</h3>
-    <button class="btn" id="zoom-in" title="მიახლოება"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.3-4.3M11 8v6M8 11h6"/></svg><span class="t">ზუმი +</span><span class="ts">ზუმი +</span></button>
-    <button class="btn" id="zoom-out" title="დაშორება"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.3-4.3M8 11h6"/></svg><span class="t">ზუმი −</span><span class="ts">ზუმი −</span></button>
-    <button class="btn wide" id="fullscreen" title="სრული ეკრანი"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg><span class="t">სრული ეკრანი</span><span class="ts">სრ. ეკრანი</span></button>
+    <button class="btn" id="zoom-in" title="მიახლოება" aria-label="მიახლოება"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.3-4.3M11 8v6M8 11h6"/></svg><span class="t">ზუმი +</span><span class="ts">ზუმი +</span></button>
+    <button class="btn" id="zoom-out" title="დაშორება" aria-label="დაშორება"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.3-4.3M8 11h6"/></svg><span class="t">ზუმი −</span><span class="ts">ზუმი −</span></button>
+    <button class="btn mobile-only" id="fullscreen" title="სრული ეკრანი" aria-label="სრული ეკრანი"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg><span class="t">სრული ეკრანი</span></button>
+    <button class="btn mobile-only" id="sheet-help" aria-label="მართვის ინსტრუქცია"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .8-1 1.5v.6M12 17.2v.1"/></svg><span class="t">დახმარება</span></button>
   </div>
   <div class="group">
     <h3>ფენები</h3>
-    <button class="btn wide" data-layer="ceiling" aria-pressed="false" title="ჭერის / სახურავის ჩვენება ან დამალვა"><svg viewBox="0 0 24 24"><path d="M3 7h18M5 7v3M19 7v3"/><path d="M7 14h10"/></svg><span class="t">ჭერის ჩვენება/დამალვა</span><span class="ts">ჭერი</span></button>
-    <button class="btn wide" data-layer="exterior" aria-pressed="true" title="გარე კედლების ჩვენება ან დამალვა (შიდა ტიხრები რჩება)"><svg viewBox="0 0 24 24"><path d="M3 20V6h18v14"/><path d="M3 10h18"/></svg><span class="t">გარე კედლების ჩვენება/დამალვა</span><span class="ts">გარე კედ.</span></button>
-    <button class="btn wide" data-layer="furniture" aria-pressed="true" title="ავეჯის ჩვენება ან დამალვა"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="9" rx="1.5"/><path d="M6 14v5M18 14v5M4 9h16"/></svg><span class="t">ავეჯის ჩვენება/დამალვა</span><span class="ts">ავეჯი</span></button>
-    <button class="btn wide" data-layer="dims" aria-pressed="false" title="ზომების ჩვენება ან დამალვა"><svg viewBox="0 0 24 24"><path d="M3 17h18M3 14v6M21 14v6M7 17v-2M11 17v-3M15 17v-2"/><path d="M7 4h10"/></svg><span class="t">ზომების ჩვენება/დამალვა</span><span class="ts">ზომები</span></button>
+    <button class="btn wide" data-layer="ceiling" aria-pressed="false" title="ჭერის / სახურავის ჩვენება ან დამალვა"><svg viewBox="0 0 24 24"><path d="M3 7h18M5 7v3M19 7v3"/><path d="M7 14h10"/></svg><span class="t">ჭერის ჩვენება/დამალვა</span></button>
+    <button class="btn wide" data-layer="exterior" aria-pressed="true" title="გარე კედლების ჩვენება ან დამალვა (შიდა ტიხრები რჩება)"><svg viewBox="0 0 24 24"><path d="M3 20V6h18v14"/><path d="M3 10h18"/></svg><span class="t">გარე კედლების ჩვენება/დამალვა</span></button>
+    <button class="btn wide" data-layer="furniture" aria-pressed="true" title="ავეჯის ჩვენება ან დამალვა"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="9" rx="1.5"/><path d="M6 14v5M18 14v5M4 9h16"/></svg><span class="t">ავეჯის ჩვენება/დამალვა</span></button>
+    <button class="btn wide" data-layer="dims" aria-pressed="false" title="ზომების ჩვენება ან დამალვა"><svg viewBox="0 0 24 24"><path d="M3 17h18M3 14v6M21 14v6M7 17v-2M11 17v-3M15 17v-2"/><path d="M7 4h10"/></svg><span class="t">ზომების ჩვენება/დამალვა</span></button>
   </div>
   <div class="group">
     <h3>რენდერთან შედარება</h3>
     <label class="sel wide" title="კამერა რენდერის ხედთან მიახლოებით (PDF „რენდერები“)"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="12" cy="12" r="3.2"/><path d="M8 5l1.5-2h5L16 5"/></svg><select id="ref-select" aria-label="რენდერის ხედი"></select></label>
-    <button class="btn wide" id="warm" aria-pressed="false" title="თბილი ჭერის განათება ოთახებში (რენდერებთან მიახლოებული პირობები; მხოლოდ სანახავში)"><svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4"/><path d="M12 6a5 5 0 0 0-3 9c.6.5 1 1.2 1 2h4c0-.8.4-1.5 1-2a5 5 0 0 0-3-9z"/></svg><span class="t">თბილი განათება</span><span class="ts">თბილი შუქი</span></button>
+    <button class="btn wide" id="warm" aria-pressed="false" title="თბილი ჭერის განათება ოთახებში (რენდერებთან მიახლოებული პირობები; მხოლოდ სანახავში)"><svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4"/><path d="M12 6a5 5 0 0 0-3 9c.6.5 1 1.2 1 2h4c0-.8.4-1.5 1-2a5 5 0 0 0-3-9z"/></svg><span class="t">თბილი განათება</span></button>
   </div>
   <div class="group">
     <h3>ფაილი</h3>
-    <button class="btn wide primary" id="glb" title="სრული მოდელის ჩამოტვირთვა GLB ფორმატში"><svg viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg><span class="t">GLB-ის ჩამოტვირთვა</span><span class="ts">GLB</span></button>
+    <button class="btn wide primary" id="glb" title="სრული მოდელის ჩამოტვირთვა GLB ფორმატში"><svg viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg><span class="t">GLB-ის ჩამოტვირთვა</span></button>
   </div>
 </nav>
+
+<nav id="navbar" class="panel" aria-label="ნავიგაცია">
+  <div class="seg" role="radiogroup" aria-label="დათვალიერების რეჟიმი">
+    <button type="button" role="radio" data-mode="orbit" aria-checked="true" class="active" aria-label="Orbit — სივრცის გარედან დათვალიერება" data-tip="Orbit — გარედან დათვალიერება"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="9" ry="4"/><circle cx="12" cy="12" r="2.2"/><path d="M18.4 6.6l1.7-1.5M20.1 5.1l.3 2.1"/></svg><span>Orbit</span></button>
+    <button type="button" role="radio" data-mode="walk" aria-checked="false" tabindex="-1" aria-label="Walk — სივრცეში სიარული (პირველი პირი)" data-tip="Walk — სივრცეში სიარული"><svg viewBox="0 0 24 24"><circle cx="13" cy="4.5" r="2"/><path d="M10 21l2-6 2.5 2V21M9 12.5l1.5-4.5 3.5 1 2 3M11.5 15L9 13"/></svg><span>Walk</span></button>
+    <button type="button" role="radio" data-mode="plan" aria-checked="false" tabindex="-1" aria-label="Plan — ორთოგრაფიული ზედხედი" data-tip="Plan — ზედხედი"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="1"/><path d="M4 12h9v8M13 4v4"/></svg><span>Plan</span></button>
+  </div>
+  <span class="sep" aria-hidden="true"></span>
+  <button type="button" class="nb" id="nav-home" aria-label="საწყისი ხედი (Home)" data-tip="საწყისი ხედი · Home"><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg><span>საწყისი</span></button>
+  <button type="button" class="nb" id="nav-fit" aria-label="მთლიანი სივრცე კადრში (Fit to View)" data-tip="მთლიანი სივრცე · Fit"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span>მთლიანი</span></button>
+  <button type="button" class="nb" id="nav-focus" aria-label="ფოკუსი მონიშნულ ობიექტზე (F)" aria-disabled="true" data-tip="ფოკუსი · F"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg><span>ფოკუსი</span></button>
+  <button type="button" class="nb desktop-only" id="nav-fs" aria-label="სრული ეკრანი" aria-pressed="false" data-tip="სრული ეკრანი"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg><span>ეკრანი</span></button>
+  <button type="button" class="nb desktop-only" id="nav-help" aria-label="მართვის ინსტრუქცია" aria-expanded="false" aria-controls="help" data-tip="დახმარება · მართვა"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .8-1 1.5v.6M12 17.2v.1"/></svg><span>დახმარება</span></button>
+  <button type="button" class="nb mobile-only" id="nav-more" aria-label="მეტი პარამეტრი: ფენები, შედარება, ფაილი, დახმარება" aria-expanded="false" aria-controls="sidepanel"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg><span>მეტი</span></button>
+</nav>
+
+<section id="help" class="panel" hidden role="dialog" aria-label="მართვის ინსტრუქცია">
+  <button class="icon-btn" id="help-close" aria-label="დახურვა">×</button>
+  <h2>მართვა</h2>
+  <div id="help-body"></div>
+</section>
+<div id="walkhud" class="panel" hidden><span class="txt"></span><button type="button" class="btn" id="walk-lock" aria-label="მაუსით ხედვა (Pointer Lock, L)"><svg viewBox="0 0 24 24"><rect x="7" y="3" width="10" height="17" rx="5"/><path d="M12 7v3"/></svg>მაუსით ხედვა</button></div>
+<div id="cross" aria-hidden="true"></div>
+<div id="joy" role="application" aria-label="ჯოისტიკი — სიარული"><div class="knob"></div></div>
 
 <section id="info" class="panel" hidden aria-live="polite">
   <button class="icon-btn" id="info-close" aria-label="დახურვა">×</button>
   <div id="info-body"></div>
   <div class="actions"><button class="btn" id="info-focus"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg>ობიექტზე ფოკუსი</button></div>
 </section>
-<div id="hint" class="panel"><span class="txt"></span><button type="button" aria-label="მართვის მინიშნება" title="მართვის მინიშნება">?</button></div>
 <div id="legend" class="panel" hidden><span><i class="sw"></i>PDF-ში მითითებული</span><span><i class="sw approx"></i>≈ ნახაზიდან / ვარაუდი</span></div>
 <div id="toast" hidden role="status"></div>
 <!--APP-->
