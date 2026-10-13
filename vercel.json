@@ -1,0 +1,8 @@
+{
+  "framework": null,
+  "installCommand": "echo skip-install",
+  "buildCommand": "echo prebuilt",
+  "outputDirectory": "dist",
+  "rewrites": [{ "source": "/", "destination": "/branch-viewer.html" }],
+  "headers": [{ "source": "/branch-model.glb", "headers": [{ "key": "Content-Type", "value": "model/gltf-binary" }] }]
+}
