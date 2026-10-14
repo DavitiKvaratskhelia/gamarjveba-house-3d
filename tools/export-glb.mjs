@@ -29,6 +29,8 @@ globalThis.FileReader ??= class {
 
 const out = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../dist/branch-model.glb');
 const { root } = buildModel();
+// სანახავის დამხმარე ობიექტები (სანათების უხილავი არჩევის ყუთები) GLB-ში არ გადის
+{ const rm = []; root.traverse((o) => { if (o.userData.pickProxy) rm.push(o); }); for (const o of rm) o.removeFromParent(); }
 const glb = await new GLTFExporter().parseAsync(root, { binary: true, onlyVisible: false });
 fs.mkdirSync(path.dirname(out), { recursive: true });
 fs.writeFileSync(out, Buffer.from(glb));

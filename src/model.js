@@ -7,6 +7,7 @@ import {
 } from './config.js';
 import { FURNITURE } from './furniture-data.js';
 import { buildFurnitureItem } from './furniture.js';
+import { buildLighting } from './lighting-model.js';
 
 const M = 0.001; // მმ → მ
 const fmt = (mm) => (mm / 1000).toFixed(2);
@@ -283,6 +284,11 @@ export function buildModel() {
     groups.ceiling.add(p.into(g, 'Roof'));
   }
 
+  // ჭერის განათების სისტემა — ცალკე ჯგუფი (ჭერის / სახურავის ჯგუფში არ არის)
+  const lighting = buildLighting();
+  root.add(lighting.root);
+  groups.lighting = lighting.root;
+
   root.updateMatrixWorld(true);
-  return { root, groups };
+  return { root, groups, lighting };
 }

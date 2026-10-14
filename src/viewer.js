@@ -13,7 +13,8 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { buildModel } from './model.js';
 import { DIMENSIONS, ROOMS, STATUS_LABEL, H, WALLS, OPENINGS, LEAVES, THRESHOLDS, PORCH } from './config.js';
 import { allFurnitureTextures } from './furniture.js';
-import { REF_VIEWS, WARM_LIGHTS } from './ref-views.js';
+import { REF_VIEWS } from './ref-views.js';
+import { setupLighting } from './lighting-viewer.js';
 import { CollisionWorld, WalkController, attachJoystick, EYE } from './navigation.js';
 
 const $ = (s) => document.querySelector(s);
@@ -45,7 +46,7 @@ scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
 scene.environmentIntensity = 0.55;
 
 // ------------------------------------------------------------------ მოდელი
-const { root, groups } = buildModel();
+const { root, groups, lighting } = buildModel();
 scene.add(root);
 
 { const an = renderer.capabilities.getMaxAnisotropy(); for (const t of allFurnitureTextures()) { t.anisotropy = an; t.needsUpdate = true; } }
@@ -104,6 +105,7 @@ const persp = new THREE.PerspectiveCamera(BASE_FOV, 1, 0.03, 400);
 const ortho = new THREE.OrthographicCamera(-10, 10, 10, -10, 0.1, 300);
 let camera = persp, needsRender = true, userMoved = false, focused = null, refActive = null;
 let mode = 'orbit';
+let lights = null; // ჭერის განათების სისტემა (lighting-viewer.js)
 let composer = null, aoPass = null;
 
 function buildComposer() {
@@ -316,6 +318,7 @@ function setMode(next, opts = {}) {
   mode = next;
   refActive = null; $('#ref-select').value = '';
   document.body.dataset.mode = next;
+  lights?.apply(); // გეგმის ნიშნულები ჩანს მხოლოდ Plan-ში (მომხმარებლის განათების პარამეტრები არ იცვლება)
   document.querySelectorAll('[data-mode]').forEach((b) => { const on = b.dataset.mode === next; b.setAttribute('aria-checked', String(on)); b.classList.toggle('active', on); b.tabIndex = on ? 0 : -1; });
   persp.near = next === 'walk' ? 0.05 : 0.03; persp.far = next === 'walk' ? 120 : 400;
   applyViewOffset();
@@ -464,10 +467,18 @@ function pick(cx, cy) {
   const r = renderer.domElement.getBoundingClientRect();
   ndc.set(((cx - r.left) / r.width) * 2 - 1, -((cy - r.top) / r.height) * 2 + 1);
   raycaster.setFromCamera(ndc, camera);
-  for (const h of raycaster.intersectObject(root, true)) {
-    if (h.object.userData.noPick || !isShown(h.object)) continue;
-    const ir = infoRoot(h.object);
-    if (ir) return ir;
+  const hits = raycaster.intersectObject(root, true).filter((h) => !h.object.userData.noPick && isShown(h.object));
+  for (let i = 0; i < hits.length; i++) {
+    const ir = infoRoot(hits[i].object);
+    if (!ir) continue;
+    // სანათების არჩევის ყუთები ერთმანეთს ფარავს (რელსი → მასზე დაკიდებული სანათი): ახლოს (≤0.35 მ) — უფრო მცირე ელემენტი
+    if (hits[i].object.userData.pickProxy) {
+      const vol = (o) => { const p = o.geometry.parameters; return p.width * p.height * p.depth; };
+      let best = hits[i];
+      for (let j = i + 1; j < hits.length && hits[j].distance - hits[i].distance <= 0.35; j++) if (hits[j].object.userData.pickProxy && vol(hits[j].object) < vol(best.object)) best = hits[j];
+      return infoRoot(best.object);
+    }
+    return ir;
   }
   return null;
 }
@@ -720,18 +731,8 @@ function setRefView(id) {
   userMoved = true;
 }
 refSel.addEventListener('change', () => { if (refSel.value) setRefView(refSel.value); });
-const warmRig = new THREE.Group();
-warmRig.name = 'warm reference lights (viewer only)';
-warmRig.visible = false;
-for (const p of WARM_LIGHTS) { const l = new THREE.PointLight('#ffd2a1', 0, 0, 2); l.power = 900; l.position.set(...p); warmRig.add(l); }
-scene.add(warmRig);
-function setWarm(on) {
-  warmRig.visible = on;
-  for (const l of warmRig.children) l.intensity = on ? l.power / (4 * Math.PI) : 0;
-  $('#warm').setAttribute('aria-pressed', String(on));
-  needsRender = true;
-}
-$('#warm').addEventListener('click', () => setWarm(!warmRig.visible));
+// ---- ჭერის განათების სისტემა: ხილვადობა და შუქი — დამოუკიდებლად, ჭერის ფენისგან განცალკევებით
+lights = setupLighting({ scene, renderer, lighting, helpers, onChange: () => { if (selected && !isShown(selected)) select(null); needsRender = true; }, getMode: () => mode });
 
 // ------------------------------------------------------------------ ზომის / ორიენტაციის ცვლილება
 function resize() {
@@ -758,7 +759,6 @@ setLayer('ceiling', false); // საწყისად ჭერი მოხ�
 setLayer('exterior', true);
 setLayer('furniture', true);
 setLayer('dims', false);
-setWarm(false);
 document.getElementById('loading')?.remove();
 
 // კონტაქტური ჩრდილები (AO) ითვლება მხოლოდ გაჩერებულ კამერაზე — მოძრაობა რჩება რბილი
@@ -788,6 +788,6 @@ requestAnimationFrame(loop);
 // შემოწმებისთვის (კონსოლიდან)
 window.__house = {
   THREE, scene, root, groups, renderer, houseCenter, world, walk, get mode() { return mode; }, get camera() { return camera; }, get controls() { return mode === 'walk' ? null : controls; }, get tween() { return tween; }, saved,
-  setMode, setView, resetView, fitView, setLayer, select, focusOn, pick, zoomBy, setRefView, setWarm, REF_VIEWS, get selected() { return selected; },
+  setMode, setView, resetView, fitView, setLayer, select, focusOn, pick, zoomBy, setRefView, REF_VIEWS, get lights() { return lights; }, get selected() { return selected; },
   capture() { if (controls && mode !== 'walk') controls.update(); aoPass.enabled = true; composer.render(); labelRenderer.render(scene, camera); return renderer.domElement.toDataURL('image/png'); },
 };
